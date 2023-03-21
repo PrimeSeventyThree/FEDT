@@ -1,0 +1,16 @@
+.dccache
+# Except the ESLint config file
+!.eslintrc.js
+# Compiled JavaScript files
+lib/**/*.js
+lib/**/*.js.map
+
+# TypeScript v1 declaration files
+typings/
+
+# Node.js dependency directory
+node_modules/
+*.log
+build
+.vscode
+Sources/config/serviceAccountKey.json
