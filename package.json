@@ -1,0 +1,19 @@
+{
+  "name": "fedt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/uploadToEmulator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -Rf ./build/* && esbuild --bundle Sources/uploadToEmulator.ts --platform=node --outfile=build/uploadToEmulator.js",
+    "start": "node build/uploadToEmulator.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esbuild": "0.17.12",
+    "firebase-admin": "^11.5.0",
+    "p-map": "^5.5.0"
+  }
+}
