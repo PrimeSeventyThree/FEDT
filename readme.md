@@ -52,9 +52,9 @@ To set up the project, follow these steps:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/firebase-storage-emulator-data-transfer.git
+git clone https://github.com/PrimeSeventyThree/FEDT.git
 
-cd firebase-storage-emulator-data-transfer
+cd FEDT
 ```
 2. Install the required dependencies:
 ```bash
@@ -86,7 +86,7 @@ To use the data transfer script, follow these steps:
 
 1. Compile the TypeScript files:
 ```bash
-npx tsc --project tsconfig.json
+npm build
 ```
 2. Run firebase storage emulator with --export-on-exit option. This start the emulator with *empty data* and exports the data to the specified directory when the emulator exits:
 ```bash
@@ -94,7 +94,7 @@ firebase emulators:start --only storage  --export-on-exit=/path/to/your/local/da
 ```
 3. Run the generated JavaScript file:
 ```bash
-node uploadToEmulator.js
+npm start
 ```
 *A word of warning:* the script will upload all the files in the specified directories to the Firebase Storage Emulator. If you have a large number of files, this may take a while. Also, the script will upload the files concurrently, so you may want to limit the number of concurrent uploads by updating the maxConcurrentUploads variable in the uploadToEmulator.ts file.
 
