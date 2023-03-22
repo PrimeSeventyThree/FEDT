@@ -4,7 +4,7 @@
  * File Created: Wednesday, 15th March 2023 3:48:25 pm
  * Author: Andrei Grichine (andrei.grichine@gmail.com)
  * -----
- * Last Modified: Tuesday, 21st March 2023 1:32:37 pm
+ * Last Modified: Wednesday, 22nd March 2023 8:47:34 am
  * Modified By: Andrei Grichine (andrei.grichine@gmail.com>)
  * -----
  * Copyright 2022 - 2023, Prime73 Inc.
@@ -41,6 +41,6 @@ process.env.FIREBASE_STORAGE_EMULATOR_HOST = `${emulatorHost}:${emulatorPort}`;
 // Initialize the firebase-admin SDK
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    storageBucket: "belizepropertycenter-4fa9b.appspot.com"
+    storageBucket: `${serviceAccount.project_id}.appspot.com`
 });
 export { admin };

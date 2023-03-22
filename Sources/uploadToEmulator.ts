@@ -4,7 +4,7 @@
  * File Created: Tuesday, 14th March 2023 6:55:29 pm
  * Author: Andrei Grichine (andrei.grichine@gmail.com)
  * -----
- * Last Modified: Tuesday, 21st March 2023 1:31:53 pm
+ * Last Modified: Tuesday, 21st March 2023 10:03:26 pm
  * Modified By: Andrei Grichine (andrei.grichine@gmail.com>)
  * -----
  * Copyright 2022 - 2023, Prime73 Inc.
@@ -43,6 +43,15 @@ const localDirectories = [
 ];
 
 /**
+ * Function to delay execution
+ *
+ * @param {number} ms - Number of milliseconds to delay execution
+ * @returns {Promise<void>} - Promise that resolves after the specified delay
+ */
+async function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+/**
  * Function to upload files to the emulator bucket
  *
  * @param {string} bucketName - Name of the bucket to upload to
@@ -50,8 +59,8 @@ const localDirectories = [
  * @param {string} folderPath - Path to the folder in the bucket to upload the files to
  * @param {number} maxConcurrentUploads - Maximum number of concurrent uploads
  */
-async function uploadFiles(bucketName: string, directoryPath: string, folderPath = "", maxConcurrentUploads = 10): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+async function uploadFiles(bucketName: string, directoryPath: string, folderPath = "", maxConcurrentUploads = 2, delayBetweenBatches = 5000): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
         const bucket = emulatorAdmin.storage().bucket(bucketName);
 
         fs.readdir(directoryPath, async (err, items) => {
@@ -66,26 +75,45 @@ async function uploadFiles(bucketName: string, directoryPath: string, folderPath
                 const itemStat = fs.statSync(itemPath);
 
                 if (itemStat.isFile()) {
-                    const fileUploadOptions = { destination: path.join(folderPath, item), resumable: false };
+                    const fileUploadOptions = {
+                        destination: path.join(folderPath, item),
+                        resumable: false
+                    };
+                    const file = bucket.file(fileUploadOptions.destination);
+                    try {
+                        const [exists] = await file.exists();
+
+                        if (exists) {
+                            // console.log(`File '${fileUploadOptions.destination}' already exists in storage.`);
+                            return;
+                        }
+                    } catch (error) {
+                        console.error(`Error checking if file '${fileUploadOptions.destination}' exists:`, error);
+                        throw error;
+                    }
 
                     try {
                         await bucket.upload(itemPath, fileUploadOptions);
-                        console.log(`File '${item}' uploaded successfully.`);
+                        // console.log(`File '${item}' uploaded successfully.`);
                     } catch (error) {
                         console.error(`Error uploading file '${item}':`, error);
                         throw error;
                     }
                 } else if (itemStat.isDirectory()) {
-                    // Recursively upload files in the subdirectory
                     const subFolderPath = path.join(folderPath, item);
-                    await uploadFiles(bucketName, itemPath, subFolderPath, maxConcurrentUploads);
+                    await uploadFiles(bucketName, itemPath, subFolderPath, maxConcurrentUploads, delayBetweenBatches);
                 }
             };
 
             try {
-                await pMap(items, uploadItem, { concurrency: maxConcurrentUploads });
+                await pMap(items, uploadItem, {
+                    concurrency: maxConcurrentUploads
+                });
+                // console.log(`Batch uploaded successfully. Waiting for next batch...`);
+                await delay(delayBetweenBatches);
                 resolve();
             } catch (error) {
+                console.error(`Error uploading batch:`, error);
                 reject(error);
             }
         });
@@ -98,6 +126,7 @@ async function uploadFiles(bucketName: string, directoryPath: string, folderPath
 async function main() {
     try {
         for (const { folder, path: dirPath } of localDirectories) {
+            console.log(`Uploading files from '${dirPath}'...`);
             await uploadFiles(emulatorAdmin.storage().bucket().name, dirPath, folder)
                 .then(() => {
                     console.log("All files uploaded successfully.");
